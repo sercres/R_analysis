@@ -1,0 +1,534 @@
+---
+title: "Data wrangling on athletes data"
+author: "Sergi Crespi"
+date: "2022-10-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+*****
+# 1 File loading
+*****
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds <- read.csv("gpa_row.csv")
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+str(ds)
+```   
+
+
+*****
+# 2 Qualitative variables normalization
+*****
+
+### 2.1 Athlete
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$athlete)
+class(ds$athlete)
+```   
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$athlete <- toupper(ds$athlete)
+ds$athlete <- as.factor(ds$athlete)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$athlete)
+class(ds$athlete)
+```
+
+Normalized to factor and all in caps.
+
+### 2.2 Female
+:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$female)
+class(ds$female)
+```   
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$female <- as.factor(ds$female)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$female)
+class(ds$female)
+```
+
+### 2.3 Black
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$black)
+class(ds$black)
+```   
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$black <- toupper(ds$black)
+ds$black <- trimws(ds$black)
+ds$black <- as.factor(ds$black)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$black)
+class(ds$black)
+```   
+
+All caps, no spaces and factor.
+
+### 2.4 White
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$white)
+class(ds$white)
+```  
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$white <- toupper(ds$white)
+ds$white <- trimws(ds$white)
+ds$white <- as.factor(ds$white)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+table(ds$white)
+class(ds$white)
+```  
+
+*****
+# 3 Quantitative variables normalization
+*****
+
+### 3.1 Access grade
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(ds$sat)
+class(ds$sat)
+```
+
+No modifications needed
+
+### 3.2 Total hours in semester
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$tothrs)
+class(ds$tothrs)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$tothrs <- gsub("h","",ds$tothrs)
+ds$tothrs <- as.integer(ds$tothrs)
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$tothrs)
+class(ds$tothrs)
+```
+
+Removing character "h" and converting to int.
+
+### 3.3 Average grade at the end of the semester
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$colgpa)
+summary(ds$colgpa)
+class(ds$colgpa)
+```
+
+41 NA's but no modifications needed for the moment.
+
+### 3.4 Total number of students in cohort
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$hsize)
+class(ds$hsize)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$hsize <- gsub("\\,","\\.", ds$hsize)
+ds$hsize <- as.numeric(ds$hsize)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$hsize)
+class(ds$hsize)
+```
+
+Converted to numeric and separator being "."
+
+### 3.5 Student relative ranking
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$hsperc)
+class(ds$hsperc)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$hsperc==format(round(ds$hsrank/ds$hsize,3), nsmall = 2))
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$hsperc <- round(ds$hsrank/ds$hsize,3)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds$hsperc)
+class(ds$hsperc)
+```
+
+Corrected decimal format
+
+*****
+# 4 Atypical values
+*****
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot(ds$sat)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+x <-boxplot.stats(ds$sat)$out
+idx <- which(ds$sat %in% x)
+ds$sat[idx]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$sat[ds$sat > 1400]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$sat[ds$sat > 1400] <- NA
+ds$sat[idx]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$sat[ds$sat < 670]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$sat[ds$sat < 670] <- NA
+ds$sat[idx]
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot(ds$sat)
+```
+
+Corrected the atypical values. Proceeding the same for hsize.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot(ds$hsize)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+x <-boxplot.stats(ds$hsize)$out
+idx <- which(ds$hsize %in% x)
+ds$hsize[idx]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$hsize[ds$hsize > 6.73]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds$hsize[ds$hsize > 6.73] <- NA
+ds$hsize[idx]
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot(ds$hsize)
+```
+
+*****
+# 5 Value imputation
+*****
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(ds)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+nrow(ds)
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sum(complete.cases(ds$sat))
+sum(complete.cases(ds$hsize))
+sum(complete.cases(ds$colgpa))
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+variables.num <- which(colnames(ds) %in% c("sat", "tothrs", "hsize", "hsrank", "hsperc", "colgpa"))
+idx <- which(is.na(ds$sat))
+```
+
+Separating female and male genders:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+fem.idx <- which(is.na(ds$sat) & (ds$female==TRUE));
+fem.idx
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+mas.idx <- which(is.na(ds$sat) & (ds$female==FALSE));
+mas.idx
+```
+
+Imputation on female gender:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('VIM')) install.packages('VIM'); library('VIM')
+new.ds.fem <- kNN(ds[ds$female==TRUE, variables.num], variable="sat", k=11)
+ds[fem.idx, variables.num]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+new.ds.fem[new.ds.fem$sat==TRUE,]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds[fem.idx,]$sat <- new.ds.fem[new.ds.fem$sat_imp==TRUE,]$sat
+```
+
+Same on male gender:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+new.ds.mas <- kNN(ds[ds$female==FALSE, variables.num], variable="sat", k=11)
+ds[mas.idx,]$sat <- new.ds.mas[new.ds.mas$sat_imp==TRUE,]$sat
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sum(complete.cases(ds$sat))
+```
+
+Same for hsize:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+variables.num <- which(colnames(ds) %in% c("sat", "tothrs", "hsize", "hsrank", "hsperc", "colgpa"))
+idx <- which(is.na(ds$hsize))
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+fem.idx <- which(is.na(ds$hsize) & (ds$female==TRUE));
+fem.idx
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+mas.idx <- which(is.na(ds$hsize) & (ds$female==FALSE));
+mas.idx
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+new.ds.fem <- kNN(ds[ds$female==TRUE, variables.num], variable="hsize", k=11)
+ds[fem.idx, variables.num]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+new.ds.fem[new.ds.fem$hsize==TRUE,]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds[fem.idx,]$hsize <- new.ds.fem[new.ds.fem$hsize_imp==TRUE,]$hsize
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+new.ds.mas <- kNN(ds[ds$female==FALSE, variables.num], variable="hsize", k=11)
+ds[mas.idx,]$hsize <- new.ds.mas[new.ds.mas$hsize_imp==TRUE,]$hsize
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sum(complete.cases(ds$hsize))
+```
+
+Same for colgpa:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+variables.num <- which(colnames(ds) %in% c("sat", "tothrs", "hsize", "hsrank", "hsperc", "colgpa"))
+idx <- which(is.na(ds$colgpa))
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+fem.idx <- which(is.na(ds$colgpa) & (ds$female==TRUE));
+fem.idx
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+mas.idx <- which(is.na(ds$colgpa) & (ds$female==FALSE));
+mas.idx
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+new.ds.fem <- kNN(ds[ds$female==TRUE, variables.num], variable="colgpa", k=11)
+ds[fem.idx, variables.num]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+new.ds.fem[new.ds.fem$colgpa==TRUE,]
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ds[fem.idx,]$colgpa <- new.ds.fem[new.ds.fem$colgpa_imp==TRUE,]$colgpa
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+new.ds.mas <- kNN(ds[ds$female==FALSE, variables.num], variable="colgpa", k=11)
+ds[mas.idx,]$colgpa <- new.ds.mas[new.ds.mas$colgpa_imp==TRUE,]$colgpa
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sum(complete.cases(ds$colgpa))
+```
+
+*****
+# 6 Creating a new variable
+*****
+
+Custom variable gpaletter with some considerations:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
+ds <- ds %>%
+  mutate(gpaletter = case_when(colgpa >= 3.5 & colgpa <= 4 ~ 'A',
+                             colgpa >= 2.5 & colgpa <= 3.49 ~ 'B',
+                             colgpa >= 1.5 & colgpa <= 2.49 ~ 'C',
+                             colgpa >= 0 & colgpa <= 1.49 ~ 'D'))
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+head(ds)
+```
+
+*****
+# 7 Descriptive study
+*****
+
+### 7.1 Qualitative variables descriptive study:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+counts <- table(ds$athlete)
+barplot(prop.table(counts),col=c("red","green"), main="Percentatge atletes", legend.text=c("No atleta","Atleta"),xlab ="Atletes", ylab = "Percentatge",ylim=c(0,0.8) )
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+df <- ds %>% group_by(female) %>% count(athlete) %>% mutate(Percent = signif(n / sum(n)*100), digits = 6)
+ggplot(df, aes(x = female, y = Percent, fill = athlete))+
+  geom_bar(stat = "identity")+
+  geom_text(aes(label = paste(Percent,"%"), y = Percent), 
+            position = position_stack(vjust = 0.5))+
+  coord_flip()+
+  labs(x = "Female", y = "Percentage",fill = "Athlete")
+```
+
+### 7.2 Quantitative variables descriptive study
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('psych')) install.packages('psych'); library('psych')
+if (!require('kableExtra')) install.packages('kableExtra'); library('kableExtra')
+id.num <- c(1,2,3,4,5,6)
+mean.n <- as.vector(sapply(ds[,id.num], mean, na.rm=TRUE))
+std.n <- as.vector(sapply(ds[,id.num], sd, na.rm=TRUE))
+median.n <- as.vector(sapply(ds[,id.num], median, na.rm=TRUE))
+mean.trim.0.05 <- as.vector(sapply(ds[,id.num], mean, na.rm=TRUE, trim=0.05))
+mean.winsor.0.05 <- as.vector(sapply(ds[,id.num], winsor.mean, na.rm=TRUE, trim=0.05))
+IQR.n <- as.vector(sapply(ds[,id.num], IQR, na.rm=TRUE))
+mad.n <- as.vector(sapply(ds[,id.num], mad, na.rm=TRUE))
+
+kable(data.frame(variables=names(ds)[id.num],
+                 Media = mean.n,
+                 Mediana = median.n,
+                 Media.retall.0.05 = mean.trim.0.05,
+                 Media.winsor.0.05 = mean.winsor.0.05
+      ),
+digist = 2, caption = "Estimacions de la tendència central")
+
+kable(data.frame(variables=names(ds)[id.num],
+                 SD = std.n,
+                 IQR = IQR.n,
+                 MAD = mad.n),
+      digits = 2, caption = "Estimacions de dispersió")
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot(ds$sat, main="Sat")
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+femalesat <- ds[which(ds$female==TRUE),]
+malesat <- ds[which(ds$female==FALSE),]
+tail(femalesat)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot(femalesat$sat, main="Female Sat")
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot(malesat$sat, main="Male Sat")
+```
+
+*****
+# 8 Final file:
+*****
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+write.csv(ds,"gpa_clean.csv", row.names = FALSE)
+```
+
+*****
+# 9 Executive summary
+*****
+
+### Summary table
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+resum <- data.frame(Cat = c("BeforePreproc","AfterPreproc"),
+                    ObserveNum = linebreak(c("4137 in all columns except colgpha that had 4096 (rest were NAs)","4137 in all columns")),
+                    QuantVarNum = linebreak(c("4","6")),
+                    QualVarNum = linebreak(c("6","5")),
+                    VarNum = linebreak(c("10","11")))
+kable(resum, col.names = c("", "ObserveNum","QuantVarNum", "QualVarNum","VarNum"), escape = F, caption = "Taula Informe Executiu") %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+Summary of modifications (in catalan):
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+resum <- data.frame(Cat = c("Sat","Tothrs","Hsize", "Hsrank","Hsperc","Colgpa","Athlete","Female","White","Black","Gpaletter"),
+                    Canvis = linebreak(c("S'han tret els valors atípics del dataset, etiquetant-los com a NAs (menor a 670 i majors a 1400). S'han imputat aquests NAs, segons el gènere, fent servir kNN amb k=11","S'ha tret la coma del final i s'ha passat a tipus integer. S'han imputat aquests NAs, segons el gènere, fent servir kNN amb k=11","S'ha canviat la coma pel punt i s'ha passat de tius character a tipus numeric. S'han tret els valors atípics del dataset, etiquetant-los com a NAs (majors de 6.73). S'han imputat aquests NAs, segons el gènere, fent servir kNN amb k=11", "No s'ha fet cap modificació","S'ha arrodonit a precisió 3 decimals","S'han imputat els NAs segons gènere fent servir kNN amb un valor de k=11","S'han passat els valors a majúscules i passat a tipus factor","S'ha canviat la variable a tipus factor","S'han eliminat espais de la variable, passat a majúscules i canviat el tipus de la variable a factor","S'han eliminat espais de la variable, passat a majúscules i canviat el tipus de la variable a factor","Nova variable creada per a posar el valor equivalent de la nota en format character (proporcionat a l'enunciat)")))
+kable(resum, col.names = c("", "Canvis"), escape = F, caption = "Taula Canvis Fitxer") %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+### Statistic summary (in catalan)
+
+La informació que s’ha obtingut de cada variable és:
+Sat: La nota d’accés, tot i que tots els valors estaven en el rang correcte, presentava uns quants valors atípics, tant per la part inferior com superior (s’han extret aquests valors, menors a 670 i majors a 1400, i imputat amb nous valors). La distribució de la nota segons gènere indica que tenen comportaments molt similars, però que les notes masculines tenen, en general, valors lleugerament més alts. La seva mitjana i mediana coincidenxen a 1030. La seva desviació estàndard és de 134.45 i el seu interquantile range és de 180. La seva median absolute deviation és de 133,43.
+Tothrs: La seva mitjana és de 53 i la mediana de 47. La seva desviació estàndard és de 35.55, el seu interquantile range és de 63 i la seva median absoute deviation és de 45.96.
+Hsize: Al nombre total d’estudiants a la cohort de graduats del batxillerat, hi havia valors atípics, i és la variable que en tenia més (a partir aproximadament de 6.3). La seva mitjana és de 3.68 i la mediana de 2.5. La seva destiavió estàndard és de 1.53, el seu interquantile range és de 1.95 i la seva median absolute deviation és de 1.39.
+Hsrank: La seva mitjana és de 52.83 i la seva mediana és de 30. La seva desviació estàndard és de 64.68, el seu interquantile range és de 59 i la seva median absolute deviation és de 35.58.
+Hsperc: La seva mitjana és de 19.23 i la mediana de 15.48. La seva desviació estàndard és de 16.57, el seu interquantile range és de 21.28 i la seva median absolute deviation és de 14.05.
+Colgpa: El rang de valors d’aquesta variable estava en el rang correcte que comentava l’enunciat. Hi havia alguns valors atípics, que s’han acabat imputant amb kNN. La seva mitjana és de 2.65 i la mediana de 2.66. La seva desviació estàndard és de 0.66, el seu interquantile range és de 0.91 i la seva median absolute deviation és de 0.67.
+Athlete: Hi ha al voltant d’un 95% de persones que no són atletes a la mostra.
+Female: Si veiem les dades segons gènere, veiem que un 2.42% de la mostra femenina són atletes, i que un 6.54% de la mostra masculina són atletes.
+White: No s’han extret conclusions d’aquestes dades ja que no s’han treballat. En l’anàlisi exploratòria s’ha vist que hi pot haver casos on White i Black siguin ambdós FALSE, fet que indica que hi ha altres races presents a la mostra.
+Black: No s’han extret conclusions d’aquestes dades ja que no s’han treballat. En l’anàlisi exploratòria s’ha vist que hi pot haver casos on White i Black siguin ambdós FALSE, fet que indica que hi ha altres races presents a la mostra.
+Gpaletter: Aquesta variable no aporta nova informació present al dataset, però un punt de vista diferent, agrupant les notes mitjanes (colgpa) en el seu equivalent en caràcters.
+
