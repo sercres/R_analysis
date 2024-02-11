@@ -1,0 +1,800 @@
+---
+title: "Athlete_exploratory_analysis"
+author: "Sergi Crespi"
+date: "2022-11-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*****
+# 1 File reading
+*****
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+gpa <- read.csv("gpa_clean.csv")
+```
+
+Verifying variable types:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+str(gpa)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(gpa)
+```
+
+*****
+# 2 Descriptive analysis and visualization
+*****
+
+### 2.1 Descriptive analysis
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+dim(gpa)
+```
+
+4137 observations and 11 variables. Taking a closer look to the numeric and categorical variables:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(gpa)
+```
+
+### 2.2 Visualization
+
+#### 2.2.1 sat and colgpa distribution
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+ggplot(data=gpa, aes(x = sat)) +
+  geom_bar()
+```
+
+sat has a normal distribution.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+ggplot(data=gpa, aes(x = colgpa)) +
+  geom_bar()
+```
+
+colgpa has a normal distirbution with outliers and atypical values.
+
+#### 2.2.2 Variable sat with variable genre ("female"), variable athlece ("athlete") and variable race ("white","black")
+
+Genre:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+ggplot(data=gpa, aes(x = female, y = sat)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+1860 samples (45%) is female. Plotting an histogram:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('gridExtra')) install.packages('gridExtra'); library('gridExtra')
+femalegpa <- gpa[which(gpa$female==TRUE),]
+p1 <- ggplot(data=femalegpa, aes(x = sat)) +
+  geom_bar() + ggtitle("FemaleSat")
+malegpa <- gpa[which(gpa$female==FALSE),]
+p2 <- ggplot(data=malegpa, aes(x = sat)) +
+  geom_bar() + ggtitle("MaleSat")
+grid.arrange(p1, p2, nrow=1)
+```
+
+Proceeding the same way for the variable athlete:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=gpa, aes(x = athlete, y = sat)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+194 samples, 5%, are athletes. Let's see the distribution between athlete and non athlete:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+athletegpa <- gpa[which(gpa$athlete==TRUE),]
+p3 <- ggplot(data=athletegpa, aes(x = sat)) +
+  geom_bar() + ggtitle("AthleteSat")
+noathletegpa <- gpa[which(gpa$athlete==FALSE),]
+p4 <- ggplot(data=noathletegpa, aes(x = sat)) +
+  geom_bar() + ggtitle("NoAthleteSat")
+grid.arrange(p3, p4, nrow=1)
+```
+
+Proceeding the same way for gender, starting with thie.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=gpa, aes(x = white, y = sat)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+3829, 83% has that race. Taking a look at the distirbution:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+whitegpa <- gpa[which(gpa$white==TRUE),]
+p5 <- ggplot(data=whitegpa, aes(x = sat)) +
+  geom_bar() + ggtitle("WhiteSat")
+nowhitegpa <- gpa[which(gpa$athlete==FALSE),]
+p6 <- ggplot(data=nowhitegpa, aes(x = sat)) +
+  geom_bar() + ggtitle("NoWhiteSat")
+grid.arrange(p5, p6, nrow=1)
+```
+
+Proceeding the same way for gender, with black:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=gpa, aes(x = black, y = sat)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+229 samples, 6%, belong to that race. 79 samples, 1%, are neither black nor white. Let's see black distribution:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+blackgpa <- gpa[which(gpa$black==TRUE),]
+p7 <- ggplot(data=whitegpa, aes(x = sat)) +
+  geom_bar() + ggtitle("BlackSat")
+noblackgpa <- gpa[which(gpa$black==FALSE),]
+p8 <- ggplot(data=noblackgpa, aes(x = sat)) +
+  geom_bar() + ggtitle("NoBlackSat")
+grid.arrange(p7, p8, nrow=1)
+```
+
+Showcasing an alternative way to portray distributions:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
+N=nrow(gpa)
+y=rep(0,N)
+y1<-data.frame(y)
+names(y1)<-"ceros"
+gpa2 <-bind_cols(gpa, y1)
+
+p9<-ggplot(gpa2)+ 
+  geom_density(aes(x= sat), adjust=2) + 
+  aes(colour = female) + 
+    labs(title="Female", y=" ", x="  " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=sat, y=ceros),  size=1)
+
+p10<-ggplot(gpa2)+ 
+  geom_density(aes(x= sat), adjust=2) + 
+  aes(colour = athlete) + 
+    labs(title="Athlete", y=" ", x="  " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=sat, y=ceros),  size=1)
+
+p11<-ggplot(gpa2)+ 
+  geom_density(aes(x= sat), adjust=2) + 
+  aes(colour = white) + 
+    labs(title="White", y=" ", x=" " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=sat, y=ceros),  size=1)
+
+p12<-ggplot(gpa2)+ 
+  geom_density(aes(x= sat), adjust=2) + 
+  aes(colour = black) + 
+    labs(title="Black", y=" ", x=" " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=sat, y=ceros),  size=1)
+
+grid.arrange(p9, p10, p11, p12, ncol=2)
+```
+
+#### 2.2.3 Variable volgpa with variable genre ("female"), variable atleta ("athlete") and race ("white","black")
+
+We'll proceed the same way than before:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=gpa, aes(x = female, y =colgpa)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+femalecolgpa <- gpa[which(gpa$female==TRUE),]
+p13 <- ggplot(data=femalecolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("FemaleColgpa")
+malecolgpa <- gpa[which(gpa$female==FALSE),]
+p14 <- ggplot(data=malecolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("MaleColgpa")
+grid.arrange(p13, p14, nrow=1)
+```
+
+Athlete:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=gpa, aes(x = athlete, y =colgpa)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+athletecolgpa <- gpa[which(gpa$athlete==TRUE),]
+p15 <- ggplot(data=athletecolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("AthleteColgpa")
+noathletecolgpa <- gpa[which(gpa$athlete==FALSE),]
+p16 <- ggplot(data=noathletecolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("NoAthleteColgpa")
+grid.arrange(p15, p16, nrow=1)
+```
+
+White:  
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=gpa, aes(x = white, y =colgpa)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+Seeing the distribution:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+whitecolgpa <- gpa[which(gpa$white==TRUE),]
+p17 <- ggplot(data=whitecolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("WhiteColgpa")
+nowhitecolgpa <- gpa[which(gpa$athlete==FALSE),]
+p18 <- ggplot(data=nowhitecolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("NoWhiteColgpa")
+grid.arrange(p17, p18, nrow=1)
+```
+
+Black:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=gpa, aes(x = black, y =colgpa)) +
+  geom_bar(stat = "identity") +
+  stat_count(aes(label=paste0(sprintf("%1.f", ..count../sum(..count..)*100),
+                              "%\n", ..count..), y=0.5*..count..), 
+             geom="text", colour="grey", size=4, position=position_dodge(width=.9))
+```
+
+Seeing the distribution:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+blackcolgpa <- gpa[which(gpa$black==TRUE),]
+p19 <- ggplot(data=blackcolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("BlackColgpa")
+noblackcolgpa <- gpa[which(gpa$black==FALSE),]
+p20 <- ggplot(data=noblackcolgpa, aes(x = colgpa)) +
+  geom_bar() + ggtitle("NoBlackColgpa")
+grid.arrange(p19, p20, nrow=1)
+```
+
+Showcasing an alternate way to show distributions:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+p21<-ggplot(gpa2)+ 
+  geom_density(aes(x= colgpa), adjust=2) + 
+  aes(colour = female) + 
+    labs(title="Female", y=" ", x="  " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=colgpa, y=ceros),  size=1)
+
+p22<-ggplot(gpa2)+ 
+  geom_density(aes(x= colgpa), adjust=2) + 
+  aes(colour = athlete) + 
+    labs(title="Athlete", y=" ", x="  " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=colgpa, y=ceros),  size=1)
+
+p23<-ggplot(gpa2)+ 
+  geom_density(aes(x= colgpa), adjust=2) + 
+  aes(colour = white) + 
+    labs(title="White", y=" ", x=" " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=colgpa, y=ceros),  size=1)
+
+p24<-ggplot(gpa2)+ 
+  geom_density(aes(x= colgpa), adjust=2) + 
+  aes(colour = black) + 
+    labs(title="Black", y=" ", x=" " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=colgpa, y=ceros),  size=1)
+
+grid.arrange(p21, p22, p23, p24, ncol=2)
+```
+
+*****
+# 3 Confidence interval of the population mean between variable sat and colgpa
+*****
+
+### 3.1 Assumptions
+
+sat and colgpa has normal distributions and we would like to know their standard deviation, the average... we want to know the 95% confidence interval of the grades from the students in the data sample.
+
+### 3.2 Calculating confidence interval
+
+Implementing a function that calculates the confidence interval of a variable and the desired level of confidence:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+IC <- function(x, NC){
+  n <- length(x)
+  alfa <- 1-(NC/100)
+  sd <- sd(x)
+  SE <- sd / sqrt(n)
+  
+  t <- qt(alfa/2, df=n-1, lower.tail=FALSE)
+  L <- mean(x) - t*SE
+  U <- mean(x) + t*SE
+  return(c(L,U))
+}
+```
+
+### 3.3 Confidence interval of variable sat
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ic90sat <- IC(gpa$sat, 90)
+ic95sat <- IC(gpa$sat, 95)
+
+ic90sat
+ic95sat
+```
+
+Checking the results:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+t.test(gpa$sat)
+```
+
+Same results from our function and the t.test.
+
+### 3.4 Confidence interval of variable colgpa
+
+Proceeding the same way:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ic90colgpa <- IC(gpa$colgpa, 90)
+ic95colgpa <- IC(gpa$colgpa, 95)
+
+ic90colgpa
+ic95colgpa
+```
+
+Checking the results:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+t.test(gpa$colgpa)
+```
+
+### 3.5 Interpretation
+
+95% confidence interval is wider than 90. If we take different samples from the population, in the 90 or 95% of the cases, considering the chosen value, will contain the values for the paramter of grade or average grade (depending if we consider sat or colgpa)
+
+*****
+# 4 Does being an athlete influence grades?
+*****
+
+### 4.1 Visual analysis
+
+Taking back a previous visualization::
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+p22
+```
+
+At first sight, seems that if you're an athlete, ther'e a peak of average notes slightly lower than non athletes. Let's see it from a boxplot:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data = gpa, aes(x=athlete, y=colgpa)) + geom_boxplot(aes(fill=athlete))
+```
+
+### 4.2 Function for the contrast of averages:
+
+Creating the function:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ttestfunction <- function(x1, x2, CL=0.95, equalvar=TRUE, alternative="bilateral"){
+  mean1 <- mean(x1)
+  n1 <- length(x1)
+  sd1 <- sd(x1)
+  mean2 <- mean(x2)
+  n2 <- length(x2)
+  sd2 <- sd(x2)
+  if (equalvar==TRUE){
+    s <- sqrt(((n1-1)*sd1^2 + (n2-1)*sd2^2)/(n1+n2-2))
+    Sb <- s*sqrt(1/n1 + 1/n2)
+    df <- n1 + n2 - 2
+  }
+  else{
+    Sb <- sqrt(sd1^2/n1 + sd2^2/n2)
+    denom <- ((sd1^2/n1)^2/(n1-1) + (sd2^2/n2)^2/(n2-2))
+    df <- ((sd1^2/n1 + sd2^2/n2)^2) / denom
+  }
+  alfa <- (1 - CL)
+  t <- (mean1 - mean2) / Sb
+  if (alternative=="bilateral"){
+    tcritical <- qnorm(alfa/2, lower.tail=FALSE)
+    pvalue <- pnorm(abs(t), lower.tail=FALSE)*2 
+  }
+  else if (alternative=="less"){
+    tcritical <- qnorm(alfa, df, lower.tail=TRUE)
+    pvalue <- pnorm(t, df, lower.tail=TRUE)
+  }
+  else{
+    tcritical <- qnorm(alfa, lower.tail=FALSE)
+    pvalue <- pnorm(t, lower.tail=FALSE)
+  }
+    info <- data.frame(t, tcritical, pvalue)
+    info %>% kable() %>% kable_styling()
+    return(info)
+}
+```
+
+### 4.3 Research question
+
+La pregunta seria: Els atletes tenen una nota mitja inferior a la nota mitja de les persones no atletes?
+
+### 4.4 Null and alternative hypothesis
+
+H0: μAthlete = μNoAthlete
+
+H1: μAthlete < μNoAthlete
+
+### 4.5 Justifying the test to apply
+
+It is a test of two samples with unknown variances. As they have a normal distribution, it would be an unilateral test.
+
+### 4.6 Calculation
+
+Calculating and outputting the results in a table:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('kableExtra')) install.packages('kableExtra'); library('kableExtra')
+info <- ttestfunction(gpa$colgpa[gpa$athlete==TRUE], gpa$colgpa[gpa$athlete==FALSE], alternative="less")
+info
+```
+
+Checking the results:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+t.test(gpa$colgpa[gpa$athlete==TRUE], gpa$colgpa[gpa$athlete==FALSE], alternative="less")
+```
+
+### 4.7 Test interpretation
+
+The critical value for a 95% confidence interval, having a p-value of 0, we can reject the null hypothesis for the alternative one: the average grade of athletes is significantly lower than non athletes.
+
+Another way of proving it is seeing the confidence intervals:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ic95athlete <- IC(gpa$colgpa[gpa$athlete==TRUE], 95)
+ic95noathlete <- IC(gpa$colgpa[gpa$athlete==FALSE], 95)
+ic95athlete
+ic95noathlete
+```
+
+As there is no overlap, we can confirm that notes are significantly different.
+
+*****
+# 5 Do females have better grades than males?
+*****
+
+### 5.1 Visual analysis
+
+Getting back a previous visualization:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+p21
+```
+
+We can see that the peak of female notes is greater than the male one. Seeing it in a boxplot:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data = gpa, aes(x=female, y=colgpa)) + geom_boxplot(aes(fill=female))
+```
+
+### 5.2 Function
+
+We will reuse the previous function.
+
+### 5.3 Research question
+
+Do females have a greater average grade than males?
+
+### 5.4 Null and alternative hypothesis 
+
+H0: μFemale = μMale
+
+H1: μFemale > μMale
+
+### 5.5 Justifying the test to apply
+
+It is a test of two samples with unkown variances. They have normal distributions. It is an unilateral test.
+
+### 5.6 Calculation
+
+For a  95% confidence interval:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+info2 <- ttestfunction(gpa$colgpa[gpa$female==TRUE], gpa$colgpa[gpa$female==FALSE], alternative="greater")
+info2
+```
+
+For a  90% confidence interval:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+info3 <- ttestfunction(gpa$colgpa[gpa$female==TRUE], gpa$colgpa[gpa$female==FALSE], CL=0.90, alternative="greater")
+info3
+```
+
+Checking the results:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+t.test(gpa$colgpa[gpa$female==TRUE], gpa$colgpa[gpa$female==FALSE], alternative="greater")
+```
+
+### 5.7 Test interpretation:
+
+The critical value for a 95% condidence interval test, with a value of α=0.05 is 1.644854, and the observed value is 7.011716. Then, the accepted region for H0 is  (-1.644854, 1.644854). As the observed value is outside that region, we can refute the null hypothesis stating that average grade of females is significantly greater than males. We should take this considerations with caution, as there are a lot of other cause that may produce this, such as socioeconomical factors.
+
+It could also be validated by seeing the confidence interval:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ic95female <- IC(gpa$colgpa[gpa$female==TRUE], 95)
+ic95nofemale <- IC(gpa$colgpa[gpa$female==FALSE], 95)
+ic95female
+ic95nofemale
+```
+
+As there is no overlap, we can state that the grades are significantly different between females and males.
+
+*****
+# 6 Is there a difference in race?
+*****
+
+### 6.1 Visual analysis
+
+Creating a new column that contains if the race is white, black or NA if it's another race.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+if (!require('tidyverse')) install.packages('tidyverse'); library('tidyverse')
+gpa <- gpa %>% mutate(whiteblack = case_when(
+  white == TRUE & black == FALSE ~ 'White',
+  white == FALSE & black == TRUE ~ 'Black',
+  white == FALSE & black == FALSE ~ 'NA',
+))
+
+gpa2 <- gpa2 %>% mutate(whiteblack = case_when(
+  white == TRUE & black == FALSE ~ 'White',
+  white == FALSE & black == TRUE ~ 'Black',
+  white == FALSE & black == FALSE ~ 'NA',
+))
+```
+
+Checking all is correct:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+p25<-ggplot(gpa2)+ 
+  geom_density(aes(x= colgpa), adjust=2) + 
+  aes(colour = whiteblack) + 
+    labs(title="White or Black", y=" ", x=" " ) +
+  theme(legend.position = "top")         +
+  geom_point(aes(x=colgpa, y=ceros),  size=1)
+
+p25
+```
+
+Seeing the distribution, we can see that, at first sight, white and NA have slighly higher values in colgpa. Let's see it in a boxplot:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data = gpa, aes(x=whiteblack, y=colgpa)) + geom_boxplot(aes(fill=whiteblack))
+```
+
+We can see that there are outlires in black and white, as well as the average and the quartiles.
+
+### 6.2 Function
+
+We will reuse the previous function.
+
+### 6.3 Research question
+
+Are the notes of the white race equal with the black race?
+
+### 6.4 Null and alternative hypothesis
+
+H0: μWhite = μBlack
+
+H1: μWhite ≠ μBlack
+
+### 6.5 Justifying the test to apply
+
+Having in consideration that the samples have a normal distribution, and the hypothesis that has been formulated, it is a bilateral test.
+
+### 6.6 Calculation
+
+Calculating at 95% confidence interval:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+info4 <- ttestfunction(gpa$colgpa[gpa$whiteblack=='White'], gpa$colgpa[gpa$whiteblack=='Black'], alternative="bilateral")
+info4
+```
+
+Checking the results:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+t.test(gpa$colgpa[gpa$whiteblack=='White'], gpa$colgpa[gpa$whiteblack=='Black'], alternative="two.sided")
+```
+
+### 6.7 Test interpretation
+
+The critical value for the 95% confidence interval is 1.959964 and the observed value is 9.559319, so we can reject the null hypothesis of equal notes between races with a confidence interval of 95%, meaning that notes between races are not equal. We should take this considerations with caution, as there are a lot of other cause that may produce this, such as socioeconomical factors.
+
+*****
+# 7 Athlete proportion
+*****
+
+### 7.1 Visual analysis
+
+Let's see the proportion on a pie chart:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+athletes <- gpa[gpa$athlete == TRUE,]
+noathletes <- gpa[gpa$athlete == FALSE,]
+
+pie <- data.frame( at=c("Athlete", "No Athlete"), n=c(nrow(athletes), nrow(noathletes)))
+ggplot(pie) +
+  aes(x = "", y = n, fill = at) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) + 
+  labs(title = "Athletes and non athletes proportion")
+```
+
+There are more non athletes than athletes
+
+### 7.2 Research question
+
+Is the proportion of athletes less thatn 0.05?
+
+### 7.3 Hipòtesi nul·la i alternativa
+
+H0 : pAthletes = 0.05 
+H1 : pAthletes < 0.05
+
+### 7.4 Justificació del test a aplicar
+
+Is a test of the proportion of a sample. The contrast is unliateral. We will apply the contrast of a sample for the proportion, assuming the binomial distribution aproximation ot a normal distribution for large sample sizes.
+
+### 7.5 Calculating the test:
+
+Defining a function to be used:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+proptest <- function(p, p0, n, CL = 95, alternative = "bilateral"){
+  z <- (p - p0)/sqrt((p0 * (1 - p0)/n))
+  alfa <- 1 - CL/100
+  if (alternative == "bilateral"){
+    pvalue <- pnorm(abs(z), lower.tail = FALSE)*2
+    zcritical <- qnorm(alfa/2, lower.tail = FALSE)
+  }
+  else if (alternative == "less"){
+    pvalue <- pnorm(z, lower.tail = TRUE)
+    zcritical <- qnorm(alfa, lower.tail = TRUE)
+  }
+  else{
+    pvalue <- pnorm(z, lower.tail = FALSE)
+    zcritical <- qnorm(alfa, lower.tail = FALSE)
+  }
+  
+  info <- c(p, p0, z, zcritical, pvalue)
+  names(info) <- c("p", "p0", "z", "zcritical", "pvalue")
+  return(info)
+}
+```
+
+Using the funciton:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+info5 <- proptest(nrow(athletes)/nrow(gpa), p0 = 0.05, nrow(gpa), alternative = "less")
+info5
+```
+
+Checking the results:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+prop.test(x=nrow(athletes), n=nrow(gpa), p = 0.05, alternative = "less", correct = FALSE)
+```
+
+### 7.6 Test interpretation
+
+Considering that p-value is 0.1797 which is greater than 0.05, that has a strong evidence towards the null hypothesis, the proportion of athletes being less thatn 5% with a confidence interval of 95%.
+
+*****
+# 8 Are there more athletes on males than females?
+*****
+
+We create a new dataset only filtering athletes:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+gpa3 <- filter(gpa, athlete == TRUE)
+```
+
+### 8.1 Visual analysis.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+females <- gpa3[gpa3$female == TRUE,]
+males <- gpa3[gpa3$female == FALSE,]
+
+pie2 <- data.frame( at=c("Female", "Male"), n=c(nrow(females), nrow(males)))
+ggplot(pie2) +
+  aes(x = "", y = n, fill = at) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) + 
+  labs(title = "Proportion of female and male atheltes")
+```
+
+Looks like there are more male atheltes.
+
+### 8.2 Research question
+
+Are there more male than female athletes?
+
+### 8.3 Hipòtesi nul·la i alternativa
+
+H0 : pAthletesMale = pAthletesFemale
+H1 : pAthletesMale > pAthletesFemale
+
+### 8.4 Justifying the test to apply
+
+We can see that the contrast is unilateral, considering the alternative hypothesis. We will apply the contrast of a sample agianst the proportion, assuming the aproximation of a binomial distribution to a normal distribution for large samples.
+
+### 8.5 Calculations of the test
+
+Reusing the previously defined function:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+info6 <- proptest(nrow(males)/nrow(gpa3), p0 = 0.05, nrow(gpa3), alternative = "greater")
+info6
+```
+
+Checking the results:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+prop.test(x=nrow(males), n=nrow(gpa3), p = 0.05, alternative = "greater", correct = FALSE)
+```
+
+### 8.6 Interpretació del test
+
+Considering that the p-value is 0, we can discard the null hypothesis in favor of the alternative one, so it can be concluded that there are more male thatn female athletes with a 95% of confidence.
+
+*****
+# 9 Summary and conclusions (in catalan)
+*****
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+resum <- data.frame(Cat = c("P1","P2","P3", "P4", "P5", "P6", "P7", "P8"),
+                    Pregunta = linebreak(c("Lectura del fitxer", "Anàlisi descriptiva del dataset", "Interval de confiança de sat i colgpa", " Els atletes tenen una nota mitja inferior a la nota mitja de les persones no atletes?", "Les dones tenen una nota mitjana superior als homes?", " Les notes de la raça white son iguals a la raça black?", "La proporció d’atletes a la població és inferior a 0.05?", "Hi ha més atletes masculins que atletes femenins?")),
+                    Resultat = linebreak(c("Lectura correcta", "Diferents visualitzacions per a interpretar el dataset", "Sat al 95%: (1026.082, 1034.580), colgpa al 95%: (2.634080, 2.674182)", "t = -5.91'309, tcritical = 4133.355, pvalue = 0", "t = 7.011716, tcritical 1.644854, pvalue = 1.177066e-12", "t = 9.559319, tcritical = 1.959964, pvalue = 1.185339e-21", "p = 0.04689388, p0 = 0.05, z = -0.91667115, zcritical = -1.64485363, pvalue = 0.17965749", "p = 0.7680412, p0 = 0.05, z = 45.8884561, zcritical = 1.6448536, pvalue = 0")),
+                    Conclusió = linebreak(c("Es pot procedir amb l'anàlisi", "Més homes que dones, és no atletes que atletes, més white que black... distribucions normals al dataset", "L'interval de confiança al 95% és més ampli que al 90%", "Amb un pvalue de 0, es rebutja la hipòtesi nul-la a favor de la alternativa, la nota mitjana dels atletes és inferior significativament a la dels no atletes", "El valor observat es troba fora de la regió acceptada per a la hipòtesi nul·la (-1.644854, 1.644854) per tant, es refuta la hipòtesi nul·la, la nota mitjana de les dones és superior significativament a la dels homes", "El valor observat és 9.559319, que està fora de la regió acceptada per la hipòtesi nul·la, per tant, es rebutja la hipòtesi nul·la de la igualtat de notes mitjanes amb un nivell de confiança del 95%, és a dir, les notes entre white i black no són iguals, són diferents", "Tenint el p-value sent 0.1797 major a 0.05, hi ha una forta evidència cap a la hipòtesi nul·la, és a dir, la proporció d'atletes és inferior al 5% amb un nivell de confiança del 95%", "Tenint en compte que el pvalue és igual a 0, es pot descartar la hipòtesi nul·la a favor de l'alternativa, hi ha més atletes entre els homes que en les dones en la població d'estudiants amb un nivell de confiança del 95%")))
+kable(resum, col.names = c("N", "Pregunta", "Resultat (valor observat, crític, valor p...)", "Conclusió"), escape = F, caption = "Taula de Resultats") %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+*****
+# 10 Executive summary (in catalan)
+*****
+Les conclusions de l’estudi són les següents: s’ha fet un estudi en profunditat dels atletes, trobant que la població d’atletes a la universitat americana és inferior al 5% del total de la població, i que la nota mitjana dels atletes és inferior a la dels no atletes. Seguint amb la figura dels atletes, els atletes masculins són més nombrosos que els femenins. Tot i així, les notes de les dones tenen una mitjana superior a la dels homes, i finalment, també s’ha trobat que les notes de les races white i black són diferents. S’ha de tenir en compte que els motius pels quals hi ha aquestes diferències es poden donar per motius socioeconòmics. Aquí només s’han analitzat les dades mitjançant mètodes estadístics, concretament i en general per a totes les preguntes contestades, s’ha plantejat una hipòtesi principal, i una d’alternativa, i s’ha demostrat la seva certesa/falsetat mitjançant un interval de confiança del 95%, és a dir, que el valors de la població en cadascuna de les preguntes tenen un 95% de probabilitats de trobar-se dins d’aquest rang de valors (que confirma aquestes hipòtesis, ja sigui la hipòtesi principal, anomenada nul·la, o la hipòtesi alternativa). Tot això s’ha pogut calcular, ja que la mostra presentava una distribució normal, és a dir, els valors de la distribució tenen una major representació en valors centrals (per exemple, si les notes van de 0 a 5, el pic de valors podria ser a 2,5, i disiminuir d’una manera molt semblant fins a 0 i fins a 5).
